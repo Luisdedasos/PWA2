@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="manifest" href="manifest.json">
+  <title>PWA ONLINE</title>
+</head>
+
+<body>
+  <h1>Esta es una aplicación PWA</h1>
+  <p>Esta es una aplicación que debería funcionar sin conexión a Internet.</p>
+  <p>Desconéctate para ver la página offline.</p>
+  <button id="btn-aceptar-notificaciones">Aceptar notificaciones</button>
+  <img id="dog-image" src="" alt="Imagen del perro">
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('service-worker.js').then(function (registration) {
+          console.log('Service Worker registrado con éxito:', registration);
+        }, function (error) {
+          console.log('Error al registrar el Service Worker:', error);
+        });
+      });
+    }
+    // Agregué un detector de eventos al evento de clic del botón
+    document.getElementById('btn-aceptar-notificaciones').addEventListener('click', function () {
+      Notification.requestPermission().then(function (permission) {
+        if (permission === 'granted') {
+          // Realicé una solicitud a dogApi
+          fetch('https://dog.ceo/api/breeds/image/random')
+            .then(response => response.json())
+            .then(data => {
+              const dogImage = document.getElementById('dog-image');
+              dogImage.src = data.message;
+              dogImage.alt = 'Imagen del perro';
+              navigator.serviceWorker.ready.then(swRegistration => {
+                swRegistration.showNotification('Nueva Notificación', {
+                  body: 'Esta es una notificación con un perrito',
+                  icon: 'icon-192x192.png',
+                  image: data.message,
+                });
+              });
+            })
+            .catch(error => console.error('Error al cargar la imagen', error));
+        } else {
+          alert('No se permitieron las notificaciones');
+        }
+      });
+    });
+  </script>
+</body>
+
+</html>
